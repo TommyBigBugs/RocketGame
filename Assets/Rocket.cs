@@ -33,6 +33,13 @@ public class Rocket : MonoBehaviour {
                 print("Ok");             
             
         }
+
+        if (objectTag == "Fuel")
+        {
+            print("Fuel");
+
+        }
+
         else 
         {
                 print("Dead");
