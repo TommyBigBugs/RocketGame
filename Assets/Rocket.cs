@@ -1,74 +1,106 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Rocket : MonoBehaviour {
 
     [SerializeField] float rcsThrustForce = 100f;
     [SerializeField] float mainThrustForce = 1200f;
+    [SerializeField] AudioClip mainEngine;
+    [SerializeField] AudioClip winSound;
+    [SerializeField] AudioClip crashSound;
+
+    [SerializeField] ParticleSystem mainEngineEffect;
+    [SerializeField] ParticleSystem winEffect;
+    [SerializeField] ParticleSystem crashEffect;
 
     Rigidbody rigidBody;
     AudioSource audioSource;
+    enum State { Alive, Dying, Transcending };
+    State state = State.Alive;
+
+    int currentLevel = 0;
 
 
     // Use this for initialization
     void Start () {
         rigidBody = GetComponent<Rigidbody>();
-        audioSource = GetComponent<AudioSource>();
+        audioSource = GetComponent<AudioSource>();        
 	}
-	
-	// Update is called once per frame
-	void Update () {
-        Rotate();
-        Thrust();
+      
+
+    // Update is called once per frame
+    void Update ()
+    {
+        if (state == State.Alive)
+        {
+            RespondToRotateInput();
+            RespondToThrustInput();
+        }
 	}
-        
+               
     void OnCollisionEnter(Collision collision)
     {
+        if (state != State.Alive) { return; }
+        
         string objectTag = collision.gameObject.tag;
 
-        if (objectTag == "Friendly")
+        if (objectTag == "Friendly") //
         {          
                 print("Ok");             
             
         }
 
-        if (objectTag == "Fuel")
+        else if (objectTag == "Finish") //win
         {
-            print("Fuel");
-
+            PlayerWon();
         }
 
-        else 
+        else //dead
         {
-                print("Dead");
+            PlayerDead();
         }
     }
 
-    private void Thrust()
+    private void PlayerWon()
     {
-        if (Input.GetKey(KeyCode.Space)) //thrust
+        state = State.Transcending;
+        audioSource.Stop();
+        audioSource.PlayOneShot(winSound);
+        winEffect.Play();
+        Invoke("LoadNextScene", 1f); //paramter
+        
+    }
+
+    private void PlayerDead()
+    {
+        state = State.Dying;
+        audioSource.Stop();
+        audioSource.PlayOneShot(crashSound);
+        crashEffect.Play();
+        Invoke("LoadNextScene", 1f);
+    }
+
+    private void LoadNextScene()
+    {
+        if (state == State.Transcending)
         {
-            float thrustThisFrame = (mainThrustForce * Time.deltaTime);
-            rigidBody.AddRelativeForce(Vector3.up * thrustThisFrame);
-            if (audioSource.isPlaying == false)
-            {
-                audioSource.Play();
-            }
+            SceneManager.LoadScene(1);           
         }
         else
         {
-            audioSource.Stop();
+            SceneManager.LoadScene(0);            
         }
+
     }
 
-    private void Rotate()
+    private void RespondToRotateInput()
+
     {
         rigidBody.freezeRotation = true;
         float rotationThisFrame = rcsThrustForce * Time.deltaTime;
 
-        if (Input.GetKey(KeyCode.A)) 
+        if (Input.GetKey(KeyCode.A))
         {
             transform.Rotate(Vector3.forward * rotationThisFrame);
         }
@@ -80,5 +112,34 @@ public class Rocket : MonoBehaviour {
 
         rigidBody.freezeRotation = false;
     }
+
+    private void RespondToThrustInput()
+    {               
+         if (Input.GetKey(KeyCode.Space)) //thrust
+        {
+            ApplyThrust();
+        }
+        else
+            {
+                audioSource.Stop();
+                mainEngineEffect.Stop();
+        }
+        
+    }     
+
+    private void ApplyThrust()
+    {
+        float thrustThisFrame = (mainThrustForce * Time.deltaTime);
+        rigidBody.AddRelativeForce(Vector3.up * thrustThisFrame);
+        if (audioSource.isPlaying == false)
+        {
+            audioSource.PlayOneShot(mainEngine);
+        }
+        if (mainEngineEffect.isPlaying == false) {
+            mainEngineEffect.Play();
+        }
+        
+    }
+
 }
 
