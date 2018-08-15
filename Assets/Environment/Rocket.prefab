@@ -935,6 +935,7 @@ MonoBehaviour:
   mainEngine: {fileID: 8300000, guid: f5e96ce798bfb794dae5ec892c445ec4, type: 3}
   winSound: {fileID: 8300000, guid: c2c79d66e38cfa34cb53ab11966a87cc, type: 3}
   crashSound: {fileID: 8300000, guid: 9e5f32bb12cd70c48bee9cb6d02fb627, type: 3}
+  levelLoadDelay: 2
   mainEngineEffect: {fileID: 198265724603004324}
   winEffect: {fileID: 198938104700212766}
   crashEffect: {fileID: 198479414613234542}
