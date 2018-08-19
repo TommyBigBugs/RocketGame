@@ -15,6 +15,11 @@ public class Rocket : MonoBehaviour {
     [SerializeField] ParticleSystem winEffect;
     [SerializeField] ParticleSystem crashEffect;
 
+    [SerializeField] Boolean devMode = false;
+
+    [SerializeField]  int lastScene;
+    [SerializeField]  int currentScene;
+    [SerializeField]  int nextScene;
     Rigidbody rigidBody;
     AudioSource audioSource;
     enum State { Alive, Dying, Transcending };
@@ -26,29 +31,57 @@ public class Rocket : MonoBehaviour {
     // Use this for initialization
     void Start () {
         rigidBody = GetComponent<Rigidbody>();
-        audioSource = GetComponent<AudioSource>();        
-	}
+        audioSource = GetComponent<AudioSource>();
+        SetLastScene();
+        currentScene = SceneManager.GetActiveScene().buildIndex;
+        nextScene = currentScene + 1;
+
+    }
       
 
     // Update is called once per frame
     void Update ()
     {
+      
+
         if (state == State.Alive)
         {
             RespondToRotateInput();
             RespondToThrustInput();
+            
         }
-	}
-               
+        if (Debug.isDebugBuild)
+        {
+            respondtobebugkeys();
+        }
+
+      
+    }
+
+    private void respondtobebugkeys()
+    {
+        if (Input.GetKey(KeyCode.L) && (devMode = true))
+        {
+            state = State.Transcending;
+            LoadNextScene();
+        }
+
+        if (Input.GetKey(KeyCode.M))
+        {
+            devMode = !devMode;
+        }
+    }
+
     void OnCollisionEnter(Collision collision)
     {
-        if (state != State.Alive) { return; }
+        if (state != State.Alive) { return; }        
         
         string objectTag = collision.gameObject.tag;
 
         if (objectTag == "Friendly") //
-        {          
-                print("Ok");             
+        {
+
+            print("ok!");
             
         }
 
@@ -56,6 +89,8 @@ public class Rocket : MonoBehaviour {
         {
             PlayerWon();
         }
+
+        else if (devMode == true) { return; }
 
         else //dead
         {
@@ -82,11 +117,18 @@ public class Rocket : MonoBehaviour {
         Invoke("LoadNextScene", levelLoadDelay);
     }
 
+    private void SetLastScene()
+    {
+        int totalScenes = SceneManager.sceneCountInBuildSettings;
+        lastScene = (totalScenes - 1);
+
+    }
+
     private void LoadNextScene()
     {
-        if (state == State.Transcending)
+        if (state == State.Transcending && nextScene <= lastScene)
         {
-            SceneManager.LoadScene(1);           
+            SceneManager.LoadScene(nextScene);           
         }
         else
         {
@@ -141,6 +183,8 @@ public class Rocket : MonoBehaviour {
         }
         
     }
+
+ 
 
 }
 
